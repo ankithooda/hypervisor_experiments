@@ -7,6 +7,8 @@ boot_v3:
 boot_v4:
 	nasm -f bin bootloaders/boot_v4.asm -o bin/boot_v4.bin
 
+hello_kernel:
+	nasm bootloaders/boot_v4.asm -o bin/boot_v4.o && gcc -m64 simple_bin.c bin/boot_v4.o -o kernel.bin -nostdlib -ffreestanding -std=c99 -mno-red-zone -fno-exceptions -nostdlib -Wall -Wextra -Werror -T bootloaders/linker.ld
 
 run_debian:
 	qemu-system-x86_64 -m 2028M -enable-kvm -drive file=images/debian-12.6.0-amd64-netinst.iso,index=0,media=disk,format=raw
