@@ -1,5 +1,8 @@
 # Binaries
 bin/
+image.hdd
+kernel/limine/
+images/
 
 # Prerequisites
 *.d
