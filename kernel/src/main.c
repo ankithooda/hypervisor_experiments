@@ -117,19 +117,40 @@ static inline void setcr4(register uint64_t val) {
                 );
 }
 
-void putc(struct limine_framebuffer *fb, uint8_t *font_char) {
-  volatile uint32_t *fb_ptr = fb->address;
+/* A basic output terminal */
+
+struct terminal {
+  uint32_t *fb_ptr;
+  uint64_t width;
+  uint64_t height;
+  uint64_t pitch;
+  uint32_t *cursor;
+};
+
+struct terminal term;
+
+void initialize_terminal(struct limine_framebuffer *fb) {
+  term.fb_ptr = fb->address;
+  term.width  = fb->width;
+  term.height = fb->height;
+  term.pitch  = fb->pitch;
+  term.cursor = fb->address;
+}
+
+void putc(uint8_t *font_char) {
 
   for ( uint8_t i = 0; i < 16; i++ ) {
     uint8_t line = font_char[i];
     for ( uint8_t j = 0; j < 8; j++ ) {
       if ((line >> (8-j)) & 0x01) {
-        fb_ptr[j + (fb->pitch * i)] = 0xffffff;
+        term.cursor[j + (term.pitch * i)] = 0xffffff;
       } else {
-        fb_ptr[j + (fb->pitch * i)] = 0x0;
+        term.cursor[j + (term.pitch * i)] = 0x0;
       }
     }
   }
+  // Increment cursor to next char position or the next line
+  term.cursor += 8;
 }
 
 // The following will be our kernel's entry point.
@@ -173,8 +194,9 @@ void _start(void) {
   // Fetch the first framebuffer.
   struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
 
-  putc(framebuffer, ascii_c);
-  putc(framebuffer, exclam);
+  initialize_terminal(framebuffer);
+  putc(ascii_c);
+  putc(exclam);
 
   // Note: we assume the framebuffer model is RGB with 32-bit pixels.
   /* for (size_t i = 0; i < 100; i++) { */
