@@ -138,20 +138,22 @@ void initialize_terminal(struct limine_framebuffer *fb) {
   term.cursor = fb->address;
 }
 
-void putc(uint8_t *font_char) {
+void putc(uint8_t c) {
 
-  for ( uint8_t i = 0; i < 16; i++ ) {
-    uint8_t line = font_char[i];
-    for ( uint8_t j = 0; j < 8; j++ ) {
-      if ((line >> (8-j)) & 0x01) {
-        term.cursor[j + (term.pitch * i)] = 0xffffff;
+  for ( uint8_t i = 0; i < ARMSCII_HEIGHT; i++ ) {
+
+    uint8_t line = armscii8[ i + ( c * ARMSCII_HEIGHT ) ];
+
+    for ( uint8_t j = 0; j < ARMSCII_WIDTH; j++ ) {
+      if ( ( line >> ( ARMSCII_WIDTH - j ) ) & 0x01 ) {
+        term.cursor[ j + (term.pitch * i) ] = 0xffffff;
       } else {
-        term.cursor[j + (term.pitch * i)] = 0x0;
+        term.cursor[ j + (term.pitch * i) ] = 0x0;
       }
     }
   }
   // Increment cursor to next char position or the next line
-  term.cursor += 8;
+  term.cursor += (ARMSCII_WIDTH + ARMSCII_PAD);
 }
 
 // The following will be our kernel's entry point.
@@ -159,40 +161,6 @@ void putc(uint8_t *font_char) {
 // linker script accordingly.
 void _start(void) {
 
-  uint8_t exclam[16] = {
-    0x00, 0x18,
-    0x3c, 0x3c,
-    0x3c, 0x3c,
-    0x18, 0x18,
-    0x18, 0x0,
-    0x18, 0x18,
-    0x0,  0x0,
-    0x0,  0x0
-  };
-
-  uint8_t ascii_c_new[16] = {
-    //0000 3c66 c0c0 c0c0 c0c0 c066 3c00 0000
-    0x00, 0x00,
-    0x3c, 0x66,
-    0xc0, 0xc0,
-    0xc0, 0xc0,
-    0xc0, 0xc0,
-    0xc0, 0x66,
-    0x3c, 0x0,
-    0x0,  0x0
-  };
-
-  uint8_t ascii_c[16] = {
-    //007c c6c6 c0c0 c0c0 c0c6 c67c 0000 0000
-    0x00, 0x7c,
-    0xc6, 0xc6,
-    0xc0, 0xc0,
-    0xc0, 0xc0,
-    0xc0, 0xc6,
-    0xc6, 0x7c,
-    0x0,  0x0,
-    0x0,  0x0
-  };
   // Ensure the bootloader actually understands our base revision (see spec).
   if (LIMINE_BASE_REVISION_SUPPORTED == false) {
     hcf();
@@ -205,33 +173,19 @@ void _start(void) {
   }
 
   // Fetch the first framebuffer.
+  // Note: we assume the framebuffer model is RGB with 32-bit pixels.
   struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
 
   initialize_terminal(framebuffer);
-  putc(exclam);
-  putc(ascii_c_new);
-  putc(ascii_c);
-  putc(exclam);
-
-  // Note: we assume the framebuffer model is RGB with 32-bit pixels.
-  /* for (size_t i = 0; i < 100; i++) { */
-  /*   volatile uint32_t *fb_ptr = framebuffer->address; */
-  /*   fb_ptr[i * (framebuffer->pitch / 4) + i] = 0xffffff; */
-  /* } */
-
-  /* /\* Initialize terminal interface *\/ */
-  /* terminal_initialize(); */
-
-  /* /\* Newline support is left as an exercise. *\/ */
-  /* terminal_writestring("Hello, kernel World!\n"); */
-
-  // We're done, just hang...
+  putc(33);
+  putc(67);
+  putc(65);
+  putc(33);
 
   uint64_t cr4 = getcr4();
-
   cr4 |= 1 << 13;
-
   setcr4(cr4);
 
+  // We're done, just hang...
   hcf();
 }
