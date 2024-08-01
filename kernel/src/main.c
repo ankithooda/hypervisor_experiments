@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <limine.h>
+#include <fonts.h>
 
 // Set the base revision to 2, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -169,6 +170,18 @@ void _start(void) {
     0x0,  0x0
   };
 
+  uint8_t ascii_c_new[16] = {
+    //0000 3c66 c0c0 c0c0 c0c0 c066 3c00 0000
+    0x00, 0x00,
+    0x3c, 0x66,
+    0xc0, 0xc0,
+    0xc0, 0xc0,
+    0xc0, 0xc0,
+    0xc0, 0x66,
+    0x3c, 0x0,
+    0x0,  0x0
+  };
+
   uint8_t ascii_c[16] = {
     //007c c6c6 c0c0 c0c0 c0c6 c67c 0000 0000
     0x00, 0x7c,
@@ -195,6 +208,8 @@ void _start(void) {
   struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
 
   initialize_terminal(framebuffer);
+  putc(exclam);
+  putc(ascii_c_new);
   putc(ascii_c);
   putc(exclam);
 
