@@ -156,6 +156,14 @@ void putc(uint8_t c) {
   term.cursor += (ARMSCII_WIDTH + ARMSCII_PAD);
 }
 
+void write_string(uint8_t *s) {
+  for (uint8_t i = 0; i < 20; i++) {
+    if (s[i] == '\0')
+      break;
+    putc(s[i]);
+  }
+}
+
 // The following will be our kernel's entry point.
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
@@ -177,10 +185,8 @@ void _start(void) {
   struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
 
   initialize_terminal(framebuffer);
-  putc(33);
-  putc(67);
-  putc(65);
-  putc(33);
+
+  write_string((uint8_t *)" Hello World !!! ");
 
   uint64_t cr4 = getcr4();
   cr4 |= 1 << 13;
