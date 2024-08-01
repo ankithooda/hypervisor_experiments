@@ -3,6 +3,9 @@ bin/
 image.hdd
 kernel/limine/
 images/
+GPATH
+GTAGS
+GRTAGS
 
 # Prerequisites
 *.d
