@@ -126,19 +126,27 @@ struct terminal {
   uint64_t height;
   uint64_t pitch;
   uint32_t *cursor;
+  uint64_t cursor_row;
 };
 
 struct terminal term;
 
 void initialize_terminal(struct limine_framebuffer *fb) {
-  term.fb_ptr = fb->address;
-  term.width  = fb->width;
-  term.height = fb->height;
-  term.pitch  = fb->pitch;
-  term.cursor = fb->address;
+  term.fb_ptr     = fb->address;
+  term.width      = fb->width;
+  term.height     = fb->height;
+  term.pitch      = fb->pitch;
+  term.cursor     = fb->address;
+  term.cursor_row = 0;
 }
 
 void putc(uint8_t c) {
+
+  if ( c == '\n' ) {
+    term.cursor_row++;
+    term.cursor = term.fb_ptr + (ARMSCII_HEIGHT * term.pitch * term.cursor_row);
+    return;
+  }
 
   for ( uint8_t i = 0; i < ARMSCII_HEIGHT; i++ ) {
 
@@ -146,7 +154,7 @@ void putc(uint8_t c) {
 
     for ( uint8_t j = 0; j < ARMSCII_WIDTH; j++ ) {
       if ( ( line >> ( ARMSCII_WIDTH - j ) ) & 0x01 ) {
-        term.cursor[ j + (term.pitch * i) ] = 0xffffff;
+        term.cursor[ j + (term.pitch * i) ] = 0xf00f00;
       } else {
         term.cursor[ j + (term.pitch * i) ] = 0x0;
       }
@@ -186,7 +194,7 @@ void _start(void) {
 
   initialize_terminal(framebuffer);
 
-  write_string((uint8_t *)" Hello World !!! ");
+  write_string((uint8_t *)" He\nll\no Wo\nrl\nd !!\n! Fro\nm this Shell Kernel a very long line of text to test the pitch");
 
   uint64_t cr4 = getcr4();
   cr4 |= 1 << 13;
