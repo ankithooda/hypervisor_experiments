@@ -133,18 +133,22 @@ struct terminal term;
 
 void initialize_terminal(struct limine_framebuffer *fb) {
   term.fb_ptr     = fb->address;
-  term.width      = fb->width;
-  term.height     = fb->height;
-  term.pitch      = fb->pitch;
+  term.width      = fb->width;  // Number of pixels in a line
+  term.height     = fb->height; // Number of lines
+  term.pitch      = fb->pitch;  // pitch is 4 * width, because each pixel is 32-bits in framebuffer
   term.cursor     = fb->address;
   term.cursor_row = 0;
 }
 
+/* Interesting tidbit - If we use term.pitch instead of term.width
+   kind of scales the font and drastically reduces number of charcters
+   one can put on the screen.
+ */
 void putc(uint8_t c) {
 
   if ( c == '\n' ) {
     term.cursor_row++;
-    term.cursor = term.fb_ptr + (ARMSCII_HEIGHT * term.pitch * term.cursor_row);
+    term.cursor = term.fb_ptr + (ARMSCII_HEIGHT * term.width * term.cursor_row);
     return;
   }
 
@@ -154,9 +158,9 @@ void putc(uint8_t c) {
 
     for ( uint8_t j = 0; j < ARMSCII_WIDTH; j++ ) {
       if ( ( line >> ( ARMSCII_WIDTH - j ) ) & 0x01 ) {
-        term.cursor[ j + (term.pitch * i) ] = 0xf00f00;
+        term.cursor[ j + (term.width * i) ] = 0xffffff;
       } else {
-        term.cursor[ j + (term.pitch * i) ] = 0x0;
+        term.cursor[ j + (term.width * i) ] = 0x0;
       }
     }
   }
@@ -208,6 +212,18 @@ void _start(void) {
   write_string( buf );
   write_string( (uint8_t *) "\n" );
 
+  write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm \n");
+  write_string( (uint8_t *) "llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll \n");
+  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
+  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
+  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
+  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
+  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
+  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
+  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
+  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
+  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
+  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
 
   uint64_t cr4 = getcr4();
   cr4 |= 1 << 13;
