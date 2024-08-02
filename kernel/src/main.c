@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <limine.h>
 #include <fonts.h>
+#include <k_string.h>
 
 // Set the base revision to 2, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -98,7 +99,6 @@ static void hcf(void) {
 
 
 // VT-x //
-
 static inline uint64_t getcr4(void) {
   register uint64_t ret = 0;
 
@@ -194,7 +194,20 @@ void _start(void) {
 
   initialize_terminal(framebuffer);
 
-  write_string((uint8_t *)" He\nll\no Wo\nrl\nd !!\n! Fro\nm this Shell Kernel a very long line of text to test the pitch");
+  uint8_t buf[20];
+
+  itoa( term.height, buf );
+  write_string( buf );
+  write_string( (uint8_t *) "\n" );
+
+  itoa( term.width, buf );
+  write_string( buf );
+  write_string( (uint8_t *) "\n" );
+
+  itoa( term.pitch, buf );
+  write_string( buf );
+  write_string( (uint8_t *) "\n" );
+
 
   uint64_t cr4 = getcr4();
   cr4 |= 1 << 13;
