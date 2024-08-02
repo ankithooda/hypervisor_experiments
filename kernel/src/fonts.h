@@ -5,7 +5,8 @@
 
 #define ARMSCII_WIDTH  8
 #define ARMSCII_HEIGHT 16
-#define ARMSCII_PAD    4      // ARMSCII Font looks really congested this value is between two chars
+#define ARMSCII_HPAD    4      // ARMSCII Font looks really congested this value is between two chars
+#define ARMSCII_VPAD   2      // Vertical Padding
 
 uint8_t armscii8[4096] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

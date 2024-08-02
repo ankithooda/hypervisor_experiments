@@ -127,6 +127,7 @@ struct terminal {
   uint64_t pitch;
   uint32_t *cursor;
   uint64_t cursor_row;
+  uint64_t cursor_col;
 };
 
 struct terminal term;
@@ -138,6 +139,7 @@ void initialize_terminal(struct limine_framebuffer *fb) {
   term.pitch      = fb->pitch;  // pitch is 4 * width, because each pixel is 32-bits in framebuffer
   term.cursor     = fb->address;
   term.cursor_row = 0;
+  term.cursor_col = 0;
 }
 
 /* Interesting tidbit - If we use term.pitch instead of term.width
@@ -146,8 +148,9 @@ void initialize_terminal(struct limine_framebuffer *fb) {
  */
 void putc(uint8_t c) {
 
-  if ( c == '\n' ) {
-    term.cursor_row++;
+  if ( c == '\n' || ( term.cursor_col + ARMSCII_WIDTH > term.width ) ) {
+    term.cursor_row += ARMSCII_VPAD;
+    term.cursor_col = 0;
     term.cursor = term.fb_ptr + (ARMSCII_HEIGHT * term.width * term.cursor_row);
     return;
   }
@@ -165,14 +168,17 @@ void putc(uint8_t c) {
     }
   }
   // Increment cursor to next char position or the next line
-  term.cursor += (ARMSCII_WIDTH + ARMSCII_PAD);
+  term.cursor += ARMSCII_WIDTH + ARMSCII_HPAD;
+
+  // Increment cursor_row
+  term.cursor_col += ARMSCII_WIDTH + ARMSCII_HPAD;
 }
 
 void write_string(uint8_t *s) {
-  for (uint8_t i = 0; i < 20; i++) {
-    if (s[i] == '\0')
-      break;
-    putc(s[i]);
+
+  while ( *s != '\0' ) {
+    putc( *s );
+    s++;
   }
 }
 
@@ -212,18 +218,7 @@ void _start(void) {
   write_string( buf );
   write_string( (uint8_t *) "\n" );
 
-  write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm \n");
-  write_string( (uint8_t *) "llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll \n");
-  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
-  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
-  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
-  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
-  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
-  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
-  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
-  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
-  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
-  /* write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n"); */
+  write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm 0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n");
 
   uint64_t cr4 = getcr4();
   cr4 |= 1 << 13;
