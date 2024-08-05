@@ -2,8 +2,9 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <limine.h>
-#include <fonts.h>
 #include <k_string.h>
+#include <term.h>
+#include <vtx.h>
 
 // Set the base revision to 2, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -98,90 +99,6 @@ static void hcf(void) {
 }
 
 
-// VT-x //
-static inline uint64_t getcr4(void) {
-  register uint64_t ret = 0;
-
-  asm volatile (
-                "movq %%cr4, %0\n"
-                :"=r"(ret)
-                );
-
-  return ret;
-}
-
-static inline void setcr4(register uint64_t val) {
-  asm volatile (
-                "movq %0, %%cr4\n"
-                :
-                :"r"(val)
-                );
-}
-
-/* A basic output terminal */
-
-struct terminal {
-  uint32_t *fb_ptr;
-  uint64_t width;
-  uint64_t height;
-  uint64_t pitch;
-  uint32_t *cursor;
-  uint64_t cursor_row;
-  uint64_t cursor_col;
-};
-
-struct terminal term;
-
-void initialize_terminal(struct limine_framebuffer *fb) {
-  term.fb_ptr     = fb->address;
-  term.width      = fb->width;  // Number of pixels in a line
-  term.height     = fb->height; // Number of lines
-  term.pitch      = fb->pitch;  // pitch is 4 * width, because each pixel is 32-bits in framebuffer
-  term.cursor     = fb->address;
-  term.cursor_row = 0;
-  term.cursor_col = 0;
-}
-
-/* Interesting tidbit - If we use term.pitch instead of term.width
-   kind of scales the font and drastically reduces number of charcters
-   one can put on the screen.
- */
-void putc(uint8_t c) {
-
-  if ( c == '\n' || ( term.cursor_col + ARMSCII_WIDTH > term.width ) ) {
-    term.cursor_row += ARMSCII_VPAD;
-    term.cursor_col = 0;
-    term.cursor = term.fb_ptr + (ARMSCII_HEIGHT * term.width * term.cursor_row);
-    return;
-  }
-
-  for ( uint8_t i = 0; i < ARMSCII_HEIGHT; i++ ) {
-
-    uint8_t line = armscii8[ i + ( c * ARMSCII_HEIGHT ) ];
-
-    for ( uint8_t j = 0; j < ARMSCII_WIDTH; j++ ) {
-      if ( ( line >> ( ARMSCII_WIDTH - j ) ) & 0x01 ) {
-        term.cursor[ j + (term.width * i) ] = 0xffffff;
-      } else {
-        term.cursor[ j + (term.width * i) ] = 0x0;
-      }
-    }
-  }
-  // Increment cursor to next char position or the next line
-  term.cursor += ARMSCII_WIDTH + ARMSCII_HPAD;
-
-  // Increment cursor_row
-  term.cursor_col += ARMSCII_WIDTH + ARMSCII_HPAD;
-}
-
-void write_string(uint8_t *s) {
-
-  while ( *s != '\0' ) {
-    putc( *s );
-    s++;
-  }
-}
-
 // The following will be our kernel's entry point.
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
@@ -217,6 +134,8 @@ void _start(void) {
   itoa( term.pitch, buf );
   write_string( buf );
   write_string( (uint8_t *) "\n" );
+
+  //vmxon();
 
   write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm 0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n");
 
