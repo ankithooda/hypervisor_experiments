@@ -1,6 +1,5 @@
 #include <stdint.h>
-//#include <fonts.h>
-#include <spline_font.h>
+#include <spleen_font.h>
 
 /* A basic output terminal */
 
@@ -32,19 +31,19 @@ void initialize_terminal(struct limine_framebuffer *fb) {
  */
 void putc(uint8_t c) {
 
-  if ( c == '\n' || ( term.cursor_col + SPLINE_FONT_WIDTH > term.width ) ) {
-    term.cursor_row += SPLINE_FONT_VPAD;
+  if ( c == '\n' || ( term.cursor_col + SPLEEN_FONT_WIDTH > term.width ) ) {
+    term.cursor_row += SPLEEN_FONT_VPAD;
     term.cursor_col = 0;
-    term.cursor = term.fb_ptr + (SPLINE_FONT_HEIGHT * term.width * term.cursor_row);
+    term.cursor = term.fb_ptr + (SPLEEN_FONT_HEIGHT * term.width * term.cursor_row);
     return;
   }
 
-  for ( uint8_t i = 0; i < SPLINE_FONT_HEIGHT; i++ ) {
+  for ( uint8_t i = 0; i < SPLEEN_FONT_HEIGHT; i++ ) {
 
-    uint16_t line = spline_font[ i + ( c * SPLINE_FONT_HEIGHT ) ];
+    uint16_t line = spline_font[ i + ( c * SPLEEN_FONT_HEIGHT ) ];
 
-    for ( uint8_t j = 0; j < SPLINE_FONT_WIDTH; j++ ) {
-      if ( ( line >> ( SPLINE_FONT_WIDTH - j ) ) & 0x01 ) {
+    for ( uint8_t j = 0; j < SPLEEN_FONT_WIDTH; j++ ) {
+      if ( ( line >> ( SPLEEN_FONT_WIDTH - j ) ) & 0x01 ) {
         term.cursor[ j + (term.width * i) ] = 0xffffff;
       } else {
         term.cursor[ j + (term.width * i) ] = 0x0;
@@ -52,10 +51,10 @@ void putc(uint8_t c) {
     }
   }
   // Increment cursor to next char position or the next line
-  term.cursor += SPLINE_FONT_WIDTH + SPLINE_FONT_HPAD;
+  term.cursor += SPLEEN_FONT_WIDTH + SPLEEN_FONT_HPAD;
 
   // Increment cursor_row
-  term.cursor_col += SPLINE_FONT_WIDTH + SPLINE_FONT_HPAD;
+  term.cursor_col += SPLEEN_FONT_WIDTH + SPLEEN_FONT_HPAD;
 }
 
 void write_string(uint8_t *s) {
