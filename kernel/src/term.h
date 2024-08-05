@@ -31,6 +31,7 @@ void initialize_terminal(struct limine_framebuffer *fb) {
  */
 void putc(uint8_t c) {
 
+  // Handle newline or wraparound.
   if ( c == '\n' || ( term.cursor_col + SPLEEN_FONT_WIDTH > term.width ) ) {
     term.cursor_row += SPLEEN_FONT_VPAD;
     term.cursor_col = 0;
@@ -38,6 +39,7 @@ void putc(uint8_t c) {
     return;
   }
 
+  // Turn pixels on based on the bitmap data stored in spline_font array.
   for ( uint8_t i = 0; i < SPLEEN_FONT_HEIGHT; i++ ) {
 
     uint16_t line = spline_font[ i + ( c * SPLEEN_FONT_HEIGHT ) ];
@@ -50,6 +52,7 @@ void putc(uint8_t c) {
       }
     }
   }
+
   // Increment cursor to next char position or the next line
   term.cursor += SPLEEN_FONT_WIDTH + SPLEEN_FONT_HPAD;
 

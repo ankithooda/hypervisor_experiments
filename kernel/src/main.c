@@ -139,7 +139,7 @@ void _start(void) {
 
   write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm 0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n");
 
-  for (uint8_t i = 0; i <= 255; i++) {
+  for (uint8_t i = 0; i < 255; i++) {
     putc(i);
   }
 
