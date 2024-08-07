@@ -121,31 +121,26 @@ void _start(void) {
 
   initialize_terminal(framebuffer);
 
+  write_string( (uint8_t *) "Hypervisor in Long Mode.\n");
+
+  // TODO: Potential Bug below causes fault on 255
+  /* for (uint8_t i = 0; i < 255; i++) { */
+  /*   putc(i); */
+  /* } */
+
   uint8_t buf[20];
-
-  itoa( term.height, buf );
-  write_string( buf );
-  write_string( (uint8_t *) "\n" );
-
-  itoa( term.width, buf );
-  write_string( buf );
-  write_string( (uint8_t *) "\n" );
-
-  itoa( term.pitch, buf );
-  write_string( buf );
-  write_string( (uint8_t *) "\n" );
-
-  //vmxon();
-
-  write_string( (uint8_t *) "0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm 0123456789QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm\n");
-
-  for (uint8_t i = 0; i < 255; i++) {
-    putc(i);
-  }
-
   uint64_t cr4 = getcr4();
+
+  itoa(cr4, buf);
+  write_string(buf);
+  write_string((uint8_t *)"\n");
+
   cr4 |= 1 << 13;
-  setcr4(cr4);
+  /* setcr4(cr4); */
+
+  /* itoa(cr4, buf); */
+  /* write_string(buf); */
+  write_string((uint8_t *)"2nd\n");
 
   // We're done, just hang...
   hcf();
