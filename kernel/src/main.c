@@ -142,12 +142,12 @@ void _start(void)
 	write_string(buf);
 	write_string((uint8_t *)"\n");
 
-	cr4 |= 1 << 13;
+	/* cr4 |= 1 << 13; */
 	/* setcr4(cr4); */
 
 	/* itoa(cr4, buf); */
 	/* write_string(buf); */
-	write_string((uint8_t *)"2nd\n");
+	write_string((uint8_t *)"Halting now.\n");
 
 	// We're done, just hang...
 	hcf();
